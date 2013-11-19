@@ -22,9 +22,9 @@ object Satin {
     def calculate() {
         getInputPowers.foreach(println)
         getLaserData.foreach(println)
-        for (laser <- getLaserData) {
-            println(laser)
-        }
+        // for (laser <- getLaserData) {
+        //     println(laser)
+        // }
         println(getOutputFilePath)
     }
 
