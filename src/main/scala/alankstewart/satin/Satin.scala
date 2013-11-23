@@ -3,6 +3,9 @@ package alankstewart.satin
 import scala.io.Source
 import scala.collection.mutable.ListBuffer
 import scalax.file.Path
+import scala.math.BigDecimal._
+import scala.math.BigDecimal.RoundingMode.HALF_UP
+import scala.collection.mutable.ListBuffer
 import com.github.nscala_time.time.Imports._
 import com.typesafe.config._
 
@@ -66,7 +69,13 @@ object Satin {
   
   def writeToFile(laser: Laser, gaussianData: List[Gaussian]) = {
     val path: Path = Path.fromString(getOutputFilePath + laser.outputFile).createFile(failIfExists = false)
-    path.write("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
-      .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide))
+    val lines = new ListBuffer[String] 
+    lines += "Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
+      .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide)      
+    lines ++= gaussianData.map((gaussian:Gaussian) => "%s\t\t%s\t\t%s\t\t%s\t\t%s\n".format(gaussian.inputPower,
+      double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian.saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian.outputPowerMinusInputPower) 
+      ).toList.to[ListBuffer]
+    lines += "\nEnd date: %s\n".format(DateTime.now)
+    path.writeStrings(lines.toList, "")
   }
 }
