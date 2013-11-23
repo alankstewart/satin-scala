@@ -1,6 +1,9 @@
 package alankstewart.satin
 
 import scala.io.Source
+import scala.collection.mutable.ListBuffer
+import scalax.file.Path
+import com.github.nscala_time.time.Imports._
 import com.typesafe.config._
 
 object Satin {
@@ -20,12 +23,20 @@ object Satin {
   }
 
   def calculate() {
-    getInputPowers.foreach(println)
-    getLaserData.foreach(println)
-    for (laser <- getLaserData) {
-      println(laser)
-    }
-    println(getOutputFilePath)
+    var total = 0
+    val inputPowers: List[Int] = getInputPowers
+    getLaserData.foreach(laser => {
+      println("processing " + laser.outputFile)
+      val gaussianData = new ListBuffer[Gaussian]()
+      var count = 0
+      inputPowers.foreach(inputPower => {
+        gaussianData ++= new GaussianLaserBean(inputPower, laser.smallSignalGain).calculateGaussians.to[ListBuffer]
+        count += 1
+      })
+      writeToFile(laser, gaussianData.toList)
+      total += count
+    })
+    println("total = " + total)
   }
 
   def getInputPowers: List[Int] = {
@@ -51,5 +62,11 @@ object Satin {
 
   def getOutputFilePath: String = {
     ConfigFactory.load().getString("outputFilePath")
+  }
+  
+  def writeToFile(laser: Laser, gaussianData: List[Gaussian]) = {
+    val path: Path = Path.fromString(getOutputFilePath + laser.outputFile).createFile(failIfExists = false)
+    path.write("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
+      .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide))
   }
 }
