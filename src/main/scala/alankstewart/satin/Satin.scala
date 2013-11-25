@@ -32,7 +32,6 @@ object Satin {
   }
 
   def main(args: Array[String]) {
-    println("Hello, world!")
     if (!calculate) println("Failed to complete")
   }
 
