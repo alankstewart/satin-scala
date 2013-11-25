@@ -1,17 +1,18 @@
 package alankstewart.satin
 
-import scala.io.Source
 import scala.collection.mutable.ListBuffer
-import scalax.file.Path
+import scala.io.Source
 import scala.math.BigDecimal._
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 import scala.math.Pi
 import scala.math.exp
 import scala.math.log
 import scala.math.pow
-import scala.collection.mutable.ListBuffer
+
 import com.github.nscala_time.time.Imports._
 import com.typesafe.config._
+
+import scalax.file.Path
 
 object Satin {
 
