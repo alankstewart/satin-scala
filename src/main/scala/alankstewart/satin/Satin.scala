@@ -38,7 +38,7 @@ object Satin {
   def calculate(): Boolean = {
     val inputPowers: List[Int] = getInputPowers
     val laserData: List[Laser] = getLaserData
-    var total = 0
+    var total: Int = 0
 
     laserData.foreach(laser => {
       total += process(inputPowers, laser)
