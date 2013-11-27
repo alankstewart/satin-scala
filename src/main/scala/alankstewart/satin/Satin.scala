@@ -25,6 +25,7 @@ object Satin {
   val Z1 = Pi * pow(W1, 2) / Lamda
   val Z12 = Z1 * Z1
   val Expr = 2 * Pi * Dr
+  val Incr = 8001
 
   object Satin {
     private val config: Config = ConfigFactory.load()
@@ -88,10 +89,9 @@ object Satin {
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
     val gaussians = new ListBuffer[Gaussian]()
-    val incr: Int = 8001
 
-    val expr1 = new Array[Double](8 * incr)
-    for (i <- 0 until incr) {
+    val expr1 = new Array[Double](8 * Incr)
+    for (i <- 0 until Incr) {
       val zInc = (i.toDouble - 4000) / 25
       expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2))
     }
@@ -104,7 +104,7 @@ object Satin {
       val expr3 = saturationIntensity * expr2
       for (r <- 0.0f to 0.5f by Dr) {
         var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
-        for (j <- 0 until incr) {
+        for (j <- 0 until Incr) {
           outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j));
         }
         outputPower += (outputIntensity * Expr * r);
