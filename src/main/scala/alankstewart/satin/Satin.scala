@@ -16,15 +16,15 @@ import scalax.file.Path
 
 object Satin {
 
-  val Rad = 0.18f;
-  val W1 = 0.3f;
-  val Dr = 0.002f;
-  val Dz = 0.04f;
-  val Lamda = 0.0106f;
-  val Area = Pi * pow(Rad, 2);
-  val Z1 = Pi * pow(W1, 2) / Lamda;
-  val Z12 = Z1 * Z1;
-  val Expr = 2 * Pi * Dr;
+  val Rad = 0.18f
+  val W1 = 0.3f
+  val Dr = 0.002f
+  val Dz = 0.04f
+  val Lamda = 0.0106f
+  val Area = Pi * pow(Rad, 2)
+  val Z1 = Pi * pow(W1, 2) / Lamda
+  val Z12 = Z1 * Z1
+  val Expr = 2 * Pi * Dr
 
   object Satin {
     private val config: Config = ConfigFactory.load()
@@ -88,22 +88,23 @@ object Satin {
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
     val gaussians = new ListBuffer[Gaussian]()
+    val incr: Int = 8001
 
-    val expr1 = new Array[Double](8 * 8001)
-    for (i <- 0 until 8001) {
+    val expr1 = new Array[Double](8 * incr)
+    for (i <- 0 until incr) {
       val zInc = (i.toDouble - 4000) / 25
-      expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2));
+      expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2))
     }
 
-    val inputIntensity = 2 * inputPower / Area;
-    val expr2 = (smallSignalGain / 32E3) * Dz;
+    val inputIntensity = 2 * inputPower / Area
+    val expr2 = (smallSignalGain / 32E3) * Dz
 
     for (saturationIntensity <- 10000 to 25000 by 1000) {
       var outputPower = 0.0;
       val expr3 = saturationIntensity * expr2
       for (r <- 0.0f to 0.5f by Dr) {
-        var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2));
-        for (j <- 0 until 8001) {
+        var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
+        for (j <- 0 until incr) {
           outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j));
         }
         outputPower += (outputIntensity * Expr * r);
