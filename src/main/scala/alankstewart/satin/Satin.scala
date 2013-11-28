@@ -91,7 +91,7 @@ object Satin {
     def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
         val gaussians = new ListBuffer[Gaussian]()
 
-        val expr1 = new Array[Double](8 * Incr)
+        val expr1 = new Array[Double](Incr)
         for (i <- 0 until Incr) {
             val zInc = (i.toDouble - 4000) / 25
             expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2))
