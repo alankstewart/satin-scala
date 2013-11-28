@@ -1,6 +1,5 @@
 package alankstewart.satin
 
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,6 +9,7 @@ import scala.io.Source
 import scala.math.BigDecimal._
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 import scala.math.exp
+import scala.collection.mutable.ListBuffer
 import scala.math.Pi
 import scala.math.pow
 
@@ -49,7 +49,7 @@ object Satin {
         if (concurrent) {
             val tasks: Seq[Future[Int]] = for (laser <- laserData) yield Future {
                 process(inputPowers, laser)
-             }
+            }
             total = Await.result(Future.sequence(tasks), Duration(60, SECONDS)).sum
         } else {
             laserData.foreach(laser => {
@@ -87,13 +87,13 @@ object Satin {
         val lines = new ListBuffer[String]
         var count: Int = 0
         lines += ("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
-                .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide)
+          .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide)
         inputPowers.foreach(inputPower => {
             lines ++= gaussianCalculation(inputPower, laser.smallSignalGain)
-                    .map((gaussian: Gaussian) => "%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
-                    .format(gaussian.inputPower, double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian
-                    .saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian
-                    .outputPowerMinusInputPower)).toList.to[ListBuffer]
+              .map((gaussian: Gaussian) => "%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
+              .format(gaussian.inputPower, double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian
+              .saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian
+              .outputPowerMinusInputPower)).toList.to[ListBuffer]
             count += 1
         })
         lines += "\nEnd date: %s\n".format(DateTime.now)
@@ -104,7 +104,7 @@ object Satin {
     def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
         val gaussians = new ListBuffer[Gaussian]()
 
-       val expr1 = new Array[Double](Incr)
+        val expr1 = new Array[Double](Incr)
         for (i <- 0 until Incr) {
             val zInc = (i.toDouble - 4000) / 25
             expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2))
