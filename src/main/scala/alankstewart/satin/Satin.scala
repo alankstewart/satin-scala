@@ -38,8 +38,7 @@ object Satin {
     }
 
     def main(args: Array[String]) {
-        val concurrent: Boolean = args.length > 0 && args(0).equals("-concurrent")
-        if (!calculate(concurrent)) println("Failed to complete")
+        if (!calculate(args.length > 0 && args(0).equals("-concurrent"))) println("Failed to complete")
     }
 
     def calculate(concurrent: Boolean): Boolean = {
