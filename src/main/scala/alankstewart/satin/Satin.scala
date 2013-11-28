@@ -1,11 +1,16 @@
 package alankstewart.satin
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.SECONDS
 import scala.io.Source
 import scala.math.BigDecimal._
 import scala.math.BigDecimal.RoundingMode.HALF_UP
-import scala.math.Pi
 import scala.math.exp
+import scala.math.Pi
 import scala.math.pow
 
 import com.github.nscala_time.time.Imports._
@@ -33,17 +38,26 @@ object Satin {
     }
 
     def main(args: Array[String]) {
-        if (!calculate) println("Failed to complete")
+        val concurrent: Boolean = args.length > 0 && args(0).equals("-concurrent")
+        if (!calculate(concurrent)) println("Failed to complete")
     }
 
-    def calculate(): Boolean = {
+    def calculate(concurrent: Boolean): Boolean = {
         val inputPowers: Array[Int] = getInputPowers
         val laserData: Array[Laser] = getLaserData
         var total: Int = 0
-        
-        laserData.foreach(laser => {
-            total += process(inputPowers, laser)
-        })
+
+        if (concurrent) {
+            val tasks: Seq[Future[Int]] = for (laser <- laserData) yield Future {
+                process(inputPowers, laser)
+             }
+            total = Await.result(Future.sequence(tasks), Duration(60, SECONDS)).sum
+        } else {
+            laserData.foreach(laser => {
+                total += process(inputPowers, laser)
+            })
+        }
+
         total == inputPowers.length * laserData.length
     }
 
@@ -91,7 +105,7 @@ object Satin {
     def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
         val gaussians = new ListBuffer[Gaussian]()
 
-        val expr1 = new Array[Double](Incr)
+       val expr1 = new Array[Double](Incr)
         for (i <- 0 until Incr) {
             val zInc = (i.toDouble - 4000) / 25
             expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2))
