@@ -11,7 +11,6 @@ import scala.math.pow
 import com.github.nscala_time.time.Imports._
 import com.typesafe.config._
 
-
 import scalax.file.Path
 
 object Satin {
@@ -41,7 +40,7 @@ object Satin {
         val inputPowers: Array[Int] = getInputPowers
         val laserData: Array[Laser] = getLaserData
         var total: Int = 0
-
+        
         laserData.foreach(laser => {
             total += process(inputPowers, laser)
         })
