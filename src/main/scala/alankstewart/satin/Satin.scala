@@ -40,7 +40,8 @@ object Satin {
     def main(args: Array[String]) {
         val start: Long = System.nanoTime
         if (!calculate(args.length > 0 && args(0).equals("-concurrent"))) println("Failed to complete")
-        println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
+        println("The time was %s seconds"
+                .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
     }
 
     def calculate(concurrent: Boolean): Boolean = {
