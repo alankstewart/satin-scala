@@ -1,15 +1,15 @@
 package alankstewart.satin
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.SECONDS
 import scala.io.Source
 import scala.math.BigDecimal._
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 import scala.math.exp
-import scala.collection.mutable.ListBuffer
 import scala.math.Pi
 import scala.math.pow
 
