@@ -45,8 +45,8 @@ object Satin {
   }
 
   def calculate(concurrent: Boolean): Boolean = {
-    val inputPowers: Array[Int] = getInputPowers
-    val laserData: Array[Laser] = getLaserData
+    val inputPowers: List[Int] = getInputPowers
+    val laserData: List[Laser] = getLaserData
     var total: Int = 0
 
     if (concurrent) {
@@ -63,28 +63,28 @@ object Satin {
     total == inputPowers.length * laserData.length
   }
 
-  def getInputPowers: Array[Int] = {
+  def getInputPowers: List[Int] = {
     val source = Source.fromFile(Satin.dataFilePath + "pin.dat")
     try {
-      source.getLines.map(line => line.trim.toInt).toArray
+      source.getLines.map(line => line.trim.toInt).toList
     } finally {
       source.close
     }
   }
 
-  def getLaserData: Array[Laser] = {
+  def getLaserData: List[Laser] = {
     val source = Source.fromFile(Satin.dataFilePath + "laser.dat")
     try {
       source.getLines.map(line => {
         val tokens = line.split("  ")
         new Laser(tokens(0), tokens(1).trim.toFloat, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
-      }).toArray
+      }).toList
     } finally {
       source.close
     }
   }
 
-  def process(inputPowers: Array[Int], laser: Laser): Int = {
+  def process(inputPowers: List[Int], laser: Laser): Int = {
     val path: Path = Path.fromString(Satin.outputFilePath + laser.outputFile).createFile(failIfExists = false)
     path.deleteIfExists(true)
     val lines = new ListBuffer[String]
