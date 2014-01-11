@@ -20,6 +20,21 @@ import scalax.file.Path
 
 object Satin {
 
+  private val config: Config = ConfigFactory.load()
+  val dataFilePath: String = config.getString("dataFilePath")
+  val outputFilePath: String = config.getString("outputFilePath")
+
+  def main(args: Array[String]) {
+    val start: Long = System.nanoTime
+    val satin = new Satin();
+    if (!satin.calculate(args.length > 0 && args(0).equals("-concurrent"))) println("Failed to complete")
+    println("The time was %s seconds"
+      .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
+  }
+}
+
+class Satin {
+
   val Rad = 0.18f
   val W1 = 0.3f
   val Dr = 0.002f
@@ -31,18 +46,6 @@ object Satin {
   val Expr = 2 * Pi * Dr
   val Incr = 8001
 
-  object Satin {
-    private val config: Config = ConfigFactory.load()
-    val dataFilePath: String = config.getString("dataFilePath")
-    val outputFilePath: String = config.getString("outputFilePath")
-  }
-
-  def main(args: Array[String]) {
-    val start: Long = System.nanoTime
-    if (!calculate(args.length > 0 && args(0).equals("-concurrent"))) println("Failed to complete")
-    println("The time was %s seconds"
-      .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
-  }
 
   def calculate(concurrent: Boolean): Boolean = {
     val inputPowers: List[Int] = getInputPowers
