@@ -14,26 +14,10 @@ import scala.math.Pi
 import scala.math.pow
 
 import com.github.nscala_time.time.Imports._
-import com.typesafe.config._
 
 import scalax.file.Path
 
 object Satin {
-
-  private val config: Config = ConfigFactory.load()
-  val dataFilePath: String = config.getString("dataFilePath")
-  val outputFilePath: String = config.getString("outputFilePath")
-
-  def main(args: Array[String]) {
-    val start: Long = System.nanoTime
-    val satin = new Satin();
-    if (!satin.calculate(args.length > 0 && args(0).equals("-concurrent"))) println("Failed to complete")
-    println("The time was %s seconds"
-      .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
-  }
-}
-
-class Satin {
 
   val Rad = 0.18f
   val W1 = 0.3f
@@ -46,6 +30,12 @@ class Satin {
   val Expr = 2 * Pi * Dr
   val Incr = 8001
 
+  def main(args: Array[String]) {
+    val start: Long = System.nanoTime
+    if (!calculate(args.length > 0 && args(0).equals("-concurrent"))) println("Failed to complete")
+    println("The time was %s seconds"
+      .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
+  }
 
   def calculate(concurrent: Boolean): Boolean = {
     val inputPowers: List[Int] = getInputPowers
@@ -67,7 +57,7 @@ class Satin {
   }
 
   def getInputPowers: List[Int] = {
-    val source = Source.fromFile(Satin.dataFilePath + "pin.dat")
+    val source = Source.fromInputStream(getClass.getResourceAsStream("/pin.dat"))
     try {
       source.getLines.map(line => line.trim.toInt).toList
     } finally {
@@ -76,7 +66,7 @@ class Satin {
   }
 
   def getLaserData: List[Laser] = {
-    val source = Source.fromFile(Satin.dataFilePath + "laser.dat")
+    val source = Source.fromInputStream(getClass.getResourceAsStream("/laser.dat"))
     try {
       source.getLines.map(line => {
         val tokens = line.split("  ")
@@ -88,7 +78,7 @@ class Satin {
   }
 
   def process(inputPowers: List[Int], laser: Laser): Int = {
-    val path: Path = Path.fromString(Satin.outputFilePath + laser.outputFile).createFile(failIfExists = false)
+    val path: Path = Path.fromString(System.getProperty("user.home") + "/tmp/" + laser.outputFile).createFile(failIfExists = false)
     path.deleteIfExists(true)
     val lines = new ListBuffer[String]
     var count: Int = 0
