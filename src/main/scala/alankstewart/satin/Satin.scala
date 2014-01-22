@@ -32,28 +32,22 @@ object Satin {
 
   def main(args: Array[String]) {
     val start: Long = System.nanoTime
-    if (!calculate(args.length > 0 && args(0).equals("-concurrent"))) println("Failed to complete")
-    println("The time was %s seconds"
-      .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
+    calculate(args.length > 0 && args(0).equals("-concurrent"))
+    println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
   }
 
-  def calculate(concurrent: Boolean): Boolean = {
+  def calculate(concurrent: Boolean): Unit = {
     val inputPowers: List[Int] = getInputPowers
     val laserData: List[Laser] = getLaserData
-    var total: Int = 0
 
     if (concurrent) {
-      val tasks: Seq[Future[Int]] = for (laser <- laserData) yield Future {
+      val tasks: Seq[Future[Unit]] = for (laser <- laserData) yield Future {
         process(inputPowers, laser)
       }
-      total = Await.result(Future.sequence(tasks), Duration(60, SECONDS)).sum
+      Await.result(Future.sequence(tasks), Duration(60, SECONDS))
     } else {
-      laserData.foreach(laser => {
-        total += process(inputPowers, laser)
-      })
+      laserData.foreach(laser => process(inputPowers, laser))
     }
-
-    total == inputPowers.length * laserData.length
   }
 
   def getInputPowers: List[Int] = {
@@ -77,11 +71,10 @@ object Satin {
     }
   }
 
-  def process(inputPowers: List[Int], laser: Laser): Int = {
+  def process(inputPowers: List[Int], laser: Laser): Unit = {
     val path: Path = Path.fromString(System.getProperty("user.home") + "/tmp/" + laser.outputFile).createFile(failIfExists = false)
     path.deleteIfExists(true)
     val lines = new ListBuffer[String]
-    var count: Int = 0
     lines += ("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
       .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide)
     inputPowers.foreach(inputPower => {
@@ -90,11 +83,9 @@ object Satin {
         .format(gaussian.inputPower, double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian
         .saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian.outputPowerMinusInputPower)).toList
         .to[ListBuffer]
-      count += 1
-    })
+     })
     lines += "\nEnd date: %s\n".format(DateTime.now)
     path.writeStrings(lines.toList, "")
-    count
   }
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
