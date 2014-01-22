@@ -51,24 +51,14 @@ object Satin {
   }
 
   def getInputPowers: List[Int] = {
-    val source = Source.fromInputStream(getClass.getResourceAsStream("/pin.dat"))
-    try {
-      source.getLines.map(line => line.trim.toInt).toList
-    } finally {
-      source.close
-    }
+    readFile("/pin.dat").map(line => line.trim.toInt).toList
   }
 
   def getLaserData: List[Laser] = {
-    val source = Source.fromInputStream(getClass.getResourceAsStream("/laser.dat"))
-    try {
-      source.getLines.map(line => {
-        val tokens = line.split("  ")
-        new Laser(tokens(0), tokens(1).trim.toFloat, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
-      }).toList
-    } finally {
-      source.close
-    }
+    readFile("/laser.dat").map(line => {
+      val tokens = line.split("  ")
+      new Laser(tokens(0), tokens(1).trim.toFloat, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
+    }).toList
   }
 
   def process(inputPowers: List[Int], laser: Laser): Unit = {
@@ -113,5 +103,14 @@ object Satin {
     }
 
     gaussians.toList
+  }
+  
+  def readFile(name: String): List[String] = {
+    val source = Source.fromInputStream(getClass.getResourceAsStream(name))
+    try {
+      source.getLines.toList
+    } finally {
+      source.close
+    }  
   }
 }
