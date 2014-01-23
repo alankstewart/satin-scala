@@ -55,18 +55,21 @@ object Satin {
   }
 
   def getLaserData: List[Laser] = {
-    readFile("/laser.dat").map(line => {
-      val tokens = line.split("  ")
-      new Laser(tokens(0), tokens(1).trim.toFloat, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
-    }).toList
+    readFile("/laser.dat").map(line => line.split("  ")).map(createLaser _).toList
+  }
+
+  def createLaser(tokens: Array[String]) = {
+    new Laser(tokens(0), tokens(1).trim.toFloat, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
   }
 
   def process(inputPowers: List[Int], laser: Laser): Unit = {
     val path: Path = Path.fromString(System.getProperty("user.home") + "/tmp/" + laser.outputFile).createFile(failIfExists = false)
     path.deleteIfExists(true)
+
     val lines = new ListBuffer[String]
     lines += ("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
       .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide)
+
     inputPowers.foreach(inputPower => {
       lines ++= gaussianCalculation(inputPower, laser.smallSignalGain)
         .map((gaussian: Gaussian) => "%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
@@ -74,6 +77,7 @@ object Satin {
         .saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian.outputPowerMinusInputPower)).toList
         .to[ListBuffer]
      })
+
     lines += "\nEnd date: %s\n".format(DateTime.now)
     path.writeStrings(lines.toList, "")
   }
