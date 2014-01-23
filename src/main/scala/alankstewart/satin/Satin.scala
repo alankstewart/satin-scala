@@ -13,9 +13,8 @@ import scala.math.exp
 import scala.math.Pi
 import scala.math.pow
 
-import com.github.nscala_time.time.Imports._
-
-import scalax.file.Path
+import java.io._
+import java.util.Calendar
 
 object Satin {
 
@@ -63,23 +62,18 @@ object Satin {
   }
 
   def process(inputPowers: List[Int], laser: Laser): Unit = {
-    val path: Path = Path.fromString(System.getProperty("user.home") + "/tmp/" + laser.outputFile).createFile(failIfExists = false)
-    path.deleteIfExists(true)
+    val path = new PrintWriter(new File(System.getProperty("user.home") + "/tmp/" + laser.outputFile));
 
-    val lines = new ListBuffer[String]
-    lines += ("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
-      .format(DateTime.now, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide)
+    path.write(("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
+      .format(Calendar.getInstance.getTime, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide))
 
-    inputPowers.foreach(inputPower => {
-      lines ++= gaussianCalculation(inputPower, laser.smallSignalGain)
-        .map((gaussian: Gaussian) => "%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
-        .format(gaussian.inputPower, double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian
-        .saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian.outputPowerMinusInputPower)).toList
-        .to[ListBuffer]
-     })
+    inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
+      .foreach(gaussian => path.write("%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
+      .format(gaussian.inputPower, double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian
+      .saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian.outputPowerMinusInputPower))))
 
-    lines += "\nEnd date: %s\n".format(DateTime.now)
-    path.writeStrings(lines.toList, "")
+    path.write("\nEnd date: %s\n".format(Calendar.getInstance.getTime))
+    path.close
   }
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
@@ -108,13 +102,13 @@ object Satin {
 
     gaussians.toList
   }
-  
+
   def readFile(name: String): List[String] = {
     val source = Source.fromInputStream(getClass.getResourceAsStream(name))
     try {
       source.getLines.toList
     } finally {
       source.close
-    }  
+    }
   }
 }
