@@ -10,6 +10,7 @@ import scala.io.Source
 import scala.math.BigDecimal._
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 import scala.math.exp
+import scala.math.floor
 import scala.math.Pi
 import scala.math.pow
 
@@ -79,9 +80,10 @@ object Satin {
   def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
     val gaussians = new ListBuffer[Gaussian]()
 
+    val incr = floor(Incr / 2)
     val expr1 = new Array[Double](Incr)
     for (i <- 0 until Incr) {
-      val zInc = (i.toDouble - 4000) / 25
+      val zInc = (i.toDouble - incr.toInt) / 25
       expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2))
     }
 
