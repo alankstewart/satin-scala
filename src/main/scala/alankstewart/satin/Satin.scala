@@ -31,30 +31,37 @@ object Satin {
 
   def main(args: Array[String]) {
     val start: Long = System.nanoTime
-    calculate(args.length > 0 && args(0).equals("-concurrent"))
+    if (args.length > 0 && args(0).equals("-concurrent")) {
+      calculateConcurrently
+    } else {
+      calculate
+    }
     println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
   }
 
-  def calculate(concurrent: Boolean): Unit = {
+  def calculateConcurrently(): Unit = {
     val inputPowers: List[Int] = getInputPowers
     val laserData: List[Laser] = getLaserData
 
-    if (concurrent) {
-      val tasks: Seq[Future[Unit]] = for (laser <- laserData) yield Future {
-        process(inputPowers, laser)
-      }
-      Await.result(Future.sequence(tasks), Duration(60, SECONDS))
-    } else {
-      laserData.foreach(laser => process(inputPowers, laser))
+    val tasks: Seq[Future[Unit]] = for (laser <- laserData) yield Future {
+      process(inputPowers, laser)
     }
+    Await.result(Future.sequence(tasks), Duration(60, SECONDS))
+  }
+
+  def calculate(): Unit = {
+    val inputPowers: List[Int] = getInputPowers
+    val laserData: List[Laser] = getLaserData
+
+    laserData.foreach(laser => process(inputPowers, laser))
   }
 
   def getInputPowers: List[Int] = {
-    readFile("/pin.dat").map(line => line.trim.toInt).toList
+    readDataFile("/pin.dat").map(line => line.trim.toInt).toList
   }
 
   def getLaserData: List[Laser] = {
-    readFile("/laser.dat").map(line => line.split("  ")).map(createLaser _).toList
+    readDataFile("/laser.dat").map(line => line.split("  ")).map(createLaser _).toList
   }
 
   def createLaser(tokens: Array[String]) = {
@@ -103,7 +110,7 @@ object Satin {
     gaussians.toList
   }
 
-  def readFile(name: String): List[String] = {
+  def readDataFile(name: String): List[String] = {
     val source = Source.fromInputStream(getClass.getResourceAsStream(name))
     try {
       source.getLines.toList
