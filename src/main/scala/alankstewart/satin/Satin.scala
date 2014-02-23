@@ -32,9 +32,9 @@ object Satin {
   def main(args: Array[String]) {
     val start: Long = System.nanoTime
     if (args.length > 0 && args(0).equals("-concurrent")) {
-      calculateConcurrently
+      calculateConcurrently()
     } else {
-      calculate
+      calculate()
     }
     println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
   }
@@ -61,7 +61,16 @@ object Satin {
   }
 
   def getLaserData: List[Laser] = {
-    readDataFile("/laser.dat").map(line => line.split("  ")).map(createLaser _).toList
+    readDataFile("/laser.dat").map(line => line.split("  ")).map(createLaser).toList
+   }
+
+  def readDataFile(name: String): List[String] = {
+    val source = Source.fromInputStream(getClass.getResourceAsStream(name))
+    try {
+      source.getLines().toList
+    } finally {
+      source.close()
+    }
   }
 
   def createLaser(tokens: Array[String]) = {
@@ -69,18 +78,18 @@ object Satin {
   }
 
   def process(inputPowers: List[Int], laser: Laser): Unit = {
-    val path = new PrintWriter(new File(System.getProperty("user.home") + "/tmp/" + laser.outputFile));
+    val path = new PrintWriter(new File(System.getProperty("java.io.tmpdir") + laser.outputFile))
 
-    path.write(("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n")
+    path.write("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
       .format(Calendar.getInstance.getTime, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide))
 
     inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
       .foreach(gaussian => path.write("%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
       .format(gaussian.inputPower, double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian
-      .saturationIntensity, gaussian.logOutputPowerDividedByInputPower, gaussian.outputPowerMinusInputPower))))
+      .saturationIntensity, gaussian.logOutputPowerDividedByInputPower(), gaussian.outputPowerMinusInputPower()))))
 
     path.write("\nEnd date: %s\n".format(Calendar.getInstance.getTime))
-    path.close
+    path.close()
   }
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
@@ -100,22 +109,13 @@ object Satin {
       for (r <- 0.0f to 0.5f by Dr) {
         var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
         for (j <- 0 until Incr) {
-          outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j));
+          outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j))
         }
-        outputPower += (outputIntensity * Expr * r);
+        outputPower += (outputIntensity * Expr * r)
       }
       gaussians += new Gaussian(inputPower, outputPower, saturationIntensity)
     }
 
     gaussians.toList
-  }
-
-  def readDataFile(name: String): List[String] = {
-    val source = Source.fromInputStream(getClass.getResourceAsStream(name))
-    try {
-      source.getLines.toList
-    } finally {
-      source.close
-    }
   }
 }
