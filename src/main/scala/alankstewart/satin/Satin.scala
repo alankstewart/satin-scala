@@ -62,7 +62,7 @@ object Satin {
 
   def getLaserData: List[Laser] = {
     readDataFile("/laser.dat").map(line => line.split("  ")).map(createLaser).toList
-   }
+  }
 
   def readDataFile(name: String): List[String] = {
     val source = Source.fromInputStream(getClass.getResourceAsStream(name))
