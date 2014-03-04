@@ -31,12 +31,17 @@ object Satin {
 
   def main(args: Array[String]) {
     val start: Long = System.nanoTime
-    if (args.length > 0 && args(0).equals("-concurrent")) {
-      calculateConcurrently()
-    } else {
-      calculate()
+    try {
+      if (args.length > 0 && args(0).equals("-concurrent")) {
+        calculateConcurrently()
+      } else {
+        calculate()
+      }
+    } catch {
+      case e  => println("Failed to complete: %s".format(e))
+    } finally {
+      println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
     }
-    println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
   }
 
   def calculateConcurrently(): Unit = {
