@@ -38,7 +38,7 @@ object Satin {
         calculate()
       }
     } catch {
-      case e  => println("Failed to complete: %s".format(e))
+      case e => println("Failed to complete: %s".format(e))
     } finally {
       println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
     }
