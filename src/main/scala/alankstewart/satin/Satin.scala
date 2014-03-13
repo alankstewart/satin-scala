@@ -18,16 +18,17 @@ import java.util.Calendar
 
 object Satin {
 
-  val Rad = 0.18f
-  val W1 = 0.3f
-  val Dr = 0.002f
-  val Dz = 0.04f
-  val Lamda = 0.0106f
+  val Rad = 0.18
+  val W1 = 0.3
+  val Dr = 0.002
+  val Dz = 0.04
+  val Lamda = 0.0106
   val Area = Pi * pow(Rad, 2)
   val Z1 = Pi * pow(W1, 2) / Lamda
   val Z12 = Z1 * Z1
   val Expr = 2 * Pi * Dr
   val Incr = 8001
+  val Path = System.getProperty("user.dir")
 
   def main(args: Array[String]) {
     val start: Long = System.nanoTime
@@ -62,20 +63,15 @@ object Satin {
   }
 
   def getInputPowers: List[Int] = {
-    readDataFile("/pin.dat").map(line => line.trim.toInt).toList
+    readDataFile("pin.dat").map(line => line.trim.toInt).toList
   }
 
   def getLaserData: List[Laser] = {
-    readDataFile("/laser.dat").map(line => line.split("  ")).map(createLaser).toList
+    readDataFile("laser.dat").map(line => line.split("  ")).map(createLaser).toList
   }
 
-  def readDataFile(name: String): List[String] = {
-    val source = Source.fromInputStream(getClass.getResourceAsStream(name))
-    try {
-      source.getLines().toList
-    } finally {
-      source.close()
-    }
+  def readDataFile(fileName: String): Iterator[String] = {
+    Source.fromURI(getClass.getClassLoader.getResource(fileName).toURI).getLines()
   }
 
   def createLaser(tokens: Array[String]) = {
@@ -83,7 +79,7 @@ object Satin {
   }
 
   def process(inputPowers: List[Int], laser: Laser): Unit = {
-    val path = new PrintWriter(new File(System.getProperty("java.io.tmpdir") + laser.outputFile))
+    val path = new PrintWriter(new File(Path + "/" + laser.outputFile))
 
     path.write("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
       .format(Calendar.getInstance.getTime, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide))
@@ -97,7 +93,7 @@ object Satin {
     path.close()
   }
 
-  def gaussianCalculation(inputPower: Int, smallSignalGain: Float): List[Gaussian] = {
+  def gaussianCalculation(inputPower: Int, smallSignalGain: Double): List[Gaussian] = {
     val gaussians = new ListBuffer[Gaussian]()
 
     val expr1 = new Array[Double](Incr)
@@ -111,7 +107,7 @@ object Satin {
 
     for (saturationIntensity <- 10000 to 25000 by 1000) {
       var outputPower = 0.0; val expr3 = saturationIntensity * expr2
-      for (r <- 0.0f to 0.5f by Dr) {
+      for (r <- 0.0 to 0.5 by Dr) {
         var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
         for (j <- 0 until Incr) {
           outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j))
