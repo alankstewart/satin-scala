@@ -39,7 +39,7 @@ object Satin {
         calculate()
       }
     } catch {
-      case e => println("Failed to complete: %s".format(e))
+      case t: Throwable => println("Failed to complete: %s".format(t))
     } finally {
       println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
     }
@@ -75,7 +75,7 @@ object Satin {
   }
 
   def createLaser(tokens: Array[String]) = {
-    new Laser(tokens(0), tokens(1).trim.toFloat, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
+    new Laser(tokens(0), tokens(1).trim.toDouble, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
   }
 
   def process(inputPowers: List[Int], laser: Laser): Unit = {
@@ -106,7 +106,8 @@ object Satin {
     val expr2 = (smallSignalGain / 32E3) * Dz
 
     for (saturationIntensity <- 10000 to 25000 by 1000) {
-      var outputPower = 0.0; val expr3 = saturationIntensity * expr2
+      var outputPower = 0.0
+      val expr3 = saturationIntensity * expr2
       for (r <- 0.0 to 0.5 by Dr) {
         var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
         for (j <- 0 until Incr) {
