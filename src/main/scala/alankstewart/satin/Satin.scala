@@ -29,6 +29,7 @@ object Satin {
   val Expr = 2 * Pi * Dr
   val Incr = 8001
   val Path = System.getProperty("user.dir")
+  val Pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
 
   def main(args: Array[String]) {
     val start: Long = System.nanoTime
@@ -67,15 +68,12 @@ object Satin {
   }
 
   def getLaserData: List[Laser] = {
-    readDataFile("laser.dat").map(line => line.split("  ")).map(createLaser).toList
+    readDataFile("laser.dat").map(line => Pattern.findFirstMatchIn(line).map(m => new Laser(m.group(1),
+      m.group(3).trim.toDouble, m.group(4).trim.toInt, CO2.withName(m.group(2).trim.toUpperCase()))).get).toList
   }
 
   def readDataFile(fileName: String): Iterator[String] = {
     Source.fromURI(getClass.getClassLoader.getResource(fileName).toURI).getLines()
-  }
-
-  def createLaser(tokens: Array[String]) = {
-    new Laser(tokens(0), tokens(1).trim.toDouble, tokens(2).trim.toInt, CO2.withName(tokens(3).trim))
   }
 
   def process(inputPowers: List[Int], laser: Laser): Unit = {
