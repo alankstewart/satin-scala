@@ -42,7 +42,9 @@ object Satin {
     } catch {
       case t: Throwable => println("Failed to complete: %s".format(t))
     } finally {
-      println("The time was %s seconds".format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)))
+      println("The time was %s seconds"
+        .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9))
+        .setScale(3, HALF_UP)))
     }
   }
 
@@ -68,8 +70,11 @@ object Satin {
   }
 
   def getLaserData: List[Laser] = {
-    readDataFile("laser.dat").map(line => Pattern.findFirstMatchIn(line).map(m => new Laser(m.group(1),
-      m.group(3).trim.toDouble, m.group(4).trim.toInt, CO2.withName(m.group(2).trim.toUpperCase()))).get).toList
+    readDataFile("laser.dat")
+      .map(line => Pattern.findFirstMatchIn(line)
+      .map(m => new Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase())))
+      .get)
+      .toList
   }
 
   def readDataFile(fileName: String): Iterator[String] = {
