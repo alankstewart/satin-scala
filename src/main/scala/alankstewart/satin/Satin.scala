@@ -32,7 +32,7 @@ object Satin {
   val Pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
 
   def main(args: Array[String]) {
-    val start: Long = System.nanoTime
+    val start = System.nanoTime
     try {
       if (args.length > 0 && args(0).equals("-concurrent")) {
         calculateConcurrently()
@@ -48,9 +48,9 @@ object Satin {
     }
   }
 
-  def calculateConcurrently(): Unit = {
-    val inputPowers: List[Int] = getInputPowers
-    val laserData: List[Laser] = getLaserData
+  def calculateConcurrently() {
+    val inputPowers = getInputPowers
+    val laserData = getLaserData
 
     val tasks: Seq[Future[Unit]] = for (laser <- laserData) yield Future {
       process(inputPowers, laser)
@@ -58,21 +58,20 @@ object Satin {
     Await.result(Future.sequence(tasks), Duration(60, SECONDS))
   }
 
-  def calculate(): Unit = {
-    val inputPowers: List[Int] = getInputPowers
-    val laserData: List[Laser] = getLaserData
+  def calculate() {
+    val inputPowers = getInputPowers
 
-    laserData.foreach(laser => process(inputPowers, laser))
+    getLaserData.foreach(laser => process(inputPowers, laser))
   }
 
   def getInputPowers: List[Int] = {
-    readDataFile("pin.dat").map(line => line.trim.toInt).toList
+    readDataFile("pin.dat").map(_.trim.toInt).toList
   }
 
   def getLaserData: List[Laser] = {
     readDataFile("laser.dat")
       .map(line => Pattern.findFirstMatchIn(line)
-      .map(m => new Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase())))
+      .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase())))
       .get)
       .toList
   }
@@ -81,7 +80,7 @@ object Satin {
     Source.fromURI(getClass.getClassLoader.getResource(fileName).toURI).getLines()
   }
 
-  def process(inputPowers: List[Int], laser: Laser): Unit = {
+  def process(inputPowers: List[Int], laser: Laser) {
     val path = new PrintWriter(new File(Path + "/" + laser.outputFile))
 
     path.write("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
