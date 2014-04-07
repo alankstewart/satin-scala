@@ -35,7 +35,7 @@ object Satin {
     val start = System.nanoTime
     try {
       if (args.length > 0 && args(0).equals("-concurrent")) {
-        calculateConcurrently()
+        Await.result(Future.sequence(calculateConcurrently()), Duration(60, SECONDS))
       } else {
         calculate()
       }
@@ -48,19 +48,16 @@ object Satin {
     }
   }
 
-  def calculateConcurrently() {
+  def calculateConcurrently(): Seq[Future[Unit]] = {
     val inputPowers = getInputPowers
     val laserData = getLaserData
-
-    val tasks: Seq[Future[Unit]] = for (laser <- laserData) yield Future {
+    for (laser <- laserData) yield Future {
       process(inputPowers, laser)
     }
-    Await.result(Future.sequence(tasks), Duration(60, SECONDS))
   }
 
   def calculate() {
     val inputPowers = getInputPowers
-
     getLaserData.foreach(laser => process(inputPowers, laser))
   }
 
