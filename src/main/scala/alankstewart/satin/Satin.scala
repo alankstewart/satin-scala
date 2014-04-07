@@ -68,7 +68,7 @@ object Satin {
   def getLaserData: List[Laser] = {
     readDataFile("laser.dat")
       .map(line => Pattern.findFirstMatchIn(line)
-      .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase())))
+      .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase)))
       .get)
       .toList
   }
