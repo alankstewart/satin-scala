@@ -18,6 +18,7 @@ import java.util.Calendar
 
 object Satin {
 
+  val Path = System.getProperty("user.dir")
   val Rad = 0.18
   val W1 = 0.3
   val Dr = 0.002
@@ -28,8 +29,6 @@ object Satin {
   val Z12 = Z1 * Z1
   val Expr = 2 * Pi * Dr
   val Incr = 8001
-  val Path = System.getProperty("user.dir")
-  val Pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
 
   def main(args: Array[String]) {
     val start = System.nanoTime
@@ -66,10 +65,10 @@ object Satin {
   }
 
   def getLaserData: List[Laser] = {
+    val pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
     readDataFile("laser.dat")
-      .map(line => Pattern.findFirstMatchIn(line)
-      .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase)))
-      .get)
+      .map(line => pattern.findFirstMatchIn(line)
+      .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase))).get)
       .toList
   }
 
@@ -85,8 +84,11 @@ object Satin {
 
     inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
       .foreach(gaussian => path.write("%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
-      .format(gaussian.inputPower, double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP), gaussian
-      .saturationIntensity, gaussian.logOutputPowerDividedByInputPower(), gaussian.outputPowerMinusInputPower()))))
+      .format(gaussian.inputPower,
+        double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP),
+        gaussian.saturationIntensity,
+        gaussian.logOutputPowerDividedByInputPower(),
+        gaussian.outputPowerMinusInputPower()))))
 
     path.write("\nEnd date: %s\n".format(Calendar.getInstance.getTime))
     path.close()
