@@ -73,7 +73,6 @@ object Satin {
 
   def process(inputPowers: List[Int], laser: Laser) {
     val path = new PrintWriter(new File(Path + "/" + laser.outputFile))
-
     path.write("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
       .format(Calendar.getInstance.getTime, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide))
 
