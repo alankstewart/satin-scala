@@ -1,20 +1,15 @@
 package alankstewart.satin
 
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.SECONDS
-import scala.io.Source
-import scala.math.BigDecimal._
-import scala.math.BigDecimal.RoundingMode.HALF_UP
-import scala.math.exp
-import scala.math.Pi
-import scala.math.pow
-
 import java.io._
 import java.util.Calendar
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.{Duration, SECONDS}
+import scala.io.Source
+import scala.math.BigDecimal.RoundingMode.HALF_UP
+import scala.math.BigDecimal._
+import scala.math.{Pi, exp, pow}
 
 object Satin {
 
@@ -33,10 +28,10 @@ object Satin {
   def main(args: Array[String]) {
     val start = System.nanoTime
     try {
-      if (args.length > 0 && args(0).equals("-concurrent")) {
-        Await.result(Future.sequence(calculateConcurrently()), Duration(60, SECONDS))
-      } else {
+      if (args.length > 0 && args(0).equals("-single")) {
         calculate()
+      } else {
+        Await.result(Future.sequence(calculateConcurrently()), Duration(60, SECONDS))
       }
     } catch {
       case t: Throwable => println("Failed to complete: %s".format(t))
@@ -95,30 +90,24 @@ object Satin {
   }
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Double): List[Gaussian] = {
-    val gaussians = new ListBuffer[Gaussian]()
-
-    val expr1 = new Array[Double](Incr)
-    for (i <- 0 until Incr) {
-      val zInc = (i.toDouble - Incr / 2) / 25
-      expr1(i) = 2 * zInc * Dz / (Z12 + pow(zInc, 2))
-    }
+    val expr1: Array[Double] = Range(0, Incr).map(i => {
+      val zInc: Double = (i.toDouble - Incr / 2) / 25
+      2 * zInc * Dz / (Z12 + pow(zInc, 2))
+    }).toArray
 
     val inputIntensity = 2 * inputPower / Area
-    val expr2 = (smallSignalGain / 32E3) * Dz
+    val expr2 = smallSignalGain / 32E3 * Dz
 
-    for (saturationIntensity <- 10000 to 25000 by 1000) {
-      var outputPower = 0.0
-      val expr3 = saturationIntensity * expr2
-      for (r <- 0.0 to 0.5 by Dr) {
+    Range.inclusive(10000, 25000, 1000).map(saturationIntensity => {
+      val expr3: Double = saturationIntensity * expr2
+      val outputPower: Double = Range.Double.inclusive(0.0, 0.5, Dr).map(r => {
         var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
-        for (j <- 0 until Incr) {
+        Range(0, Incr).foreach(j => {
           outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j))
-        }
-        outputPower += (outputIntensity * Expr * r)
-      }
-      gaussians += new Gaussian(inputPower, outputPower, saturationIntensity)
-    }
-
-    gaussians.toList
+        })
+        outputIntensity * Expr * r
+      }).sum
+      new Gaussian(inputPower, outputPower, saturationIntensity)
+    }).toList
   }
 }
