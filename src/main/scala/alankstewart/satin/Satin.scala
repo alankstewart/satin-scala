@@ -34,11 +34,11 @@ object Satin {
         Await.result(Future.sequence(calculateConcurrently()), Duration(60, SECONDS))
       }
     } catch {
-      case t: Throwable => println("Failed to complete: %s".format(t))
+      case t: Throwable => println(s"Failed to complete: $t")
     } finally {
-      println("The time was %s seconds"
-        .format((long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9))
-        .setScale(3, HALF_UP)))
+      println(s"The time was ${
+        (long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)
+      } seconds")
     }
   }
 
