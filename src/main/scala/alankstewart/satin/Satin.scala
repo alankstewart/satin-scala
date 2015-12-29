@@ -1,19 +1,21 @@
 package alankstewart.satin
 
 import java.io._
-import java.util.Calendar
+import java.time.LocalDateTime.now
+import java.time.format.DateTimeFormatter
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.{Duration, SECONDS}
+import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 import scala.math.BigDecimal._
 import scala.math.{Pi, exp, pow}
 
-object Satin {
+object Satin extends App {
 
   val Path = System.getProperty("user.dir")
+  val DateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SSS")
   val Rad = 0.18
   val W1 = 0.3
   val Dr = 0.002
@@ -25,21 +27,19 @@ object Satin {
   val Expr = 2 * Pi * Dr
   val Incr = 8001
 
-  def main(args: Array[String]) {
-    val start = System.nanoTime
-    try {
-      if (args.length > 0 && args(0).equals("-single")) {
-        calculate()
-      } else {
-        Await.result(Future.sequence(calculateConcurrently()), Duration(60, SECONDS))
-      }
-    } catch {
-      case t: Throwable => println(s"Failed to complete: $t")
-    } finally {
-      println(s"The time was ${
-        (long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)
-      } seconds")
+  val start = System.nanoTime
+  try {
+    if (args.length > 0 && args(0).equals("-single")) {
+      calculate()
+    } else {
+      Await.result(Future.sequence(calculateConcurrently()), Duration(60, SECONDS))
     }
+  } catch {
+    case t: Throwable => println(s"Failed to complete: $t")
+  } finally {
+    println(s"The time was ${
+      (long2bigDecimal(System.nanoTime - start) / double2bigDecimal(1E9)).setScale(3, HALF_UP)
+    } seconds")
   }
 
   def calculateConcurrently(): Seq[Future[Unit]] = {
@@ -63,7 +63,7 @@ object Satin {
     val pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
     readDataFile("laser.dat")
       .map(line => pattern.findFirstMatchIn(line)
-      .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase))).get)
+        .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase))).get)
       .toList
   }
 
@@ -73,18 +73,28 @@ object Satin {
 
   def process(inputPowers: List[Int], laser: Laser) {
     val path = new PrintWriter(new File(Path + "/" + laser.outputFile))
-    path.write("Start date: %s\n\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n"
-      .format(Calendar.getInstance.getTime, laser.dischargePressure, laser.smallSignalGain, laser.carbonDioxide))
+    path.write(
+      f"""Start date: ${now.format(DateFormatter)}
+
+Gaussian Beam
+
+Pressure in Main Discharge = ${laser.dischargePressure}kPa
+Small-signal Gain = ${laser.smallSignalGain}%4.1f
+CO2 via ${laser.carbonDioxide}
+
+Pin		Pout		Sat. Int	ln(Pout/Pin)	Pout-Pin
+(watts)		(watts)		(watts/cm2)			(watts)
+""")
 
     inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
-      .foreach(gaussian => path.write("%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
-      .format(gaussian.inputPower,
-        double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP),
-        gaussian.saturationIntensity,
-        gaussian.logOutputPowerDividedByInputPower(),
-        gaussian.outputPowerMinusInputPower()))))
+      .foreach(gaussian => path.write(
+        s"""${gaussian.inputPower}		${double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP)}		${gaussian.saturationIntensity}		${gaussian.logOutputPowerDividedByInputPower()}		${gaussian.outputPowerMinusInputPower()}
+""")))
 
-    path.write("\nEnd date: %s\n".format(Calendar.getInstance.getTime))
+    path.write(
+      s"""
+End date: ${now.format(DateFormatter)}
+""")
     path.close()
   }
 
@@ -106,7 +116,7 @@ object Satin {
         })
         outputIntensity * Expr * r
       }).sum
-      new Gaussian(inputPower, outputPower, saturationIntensity)
+      Gaussian(inputPower, outputPower, saturationIntensity)
     }).toList
   }
 }
