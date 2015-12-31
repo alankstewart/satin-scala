@@ -42,7 +42,7 @@ object Satin extends App {
     } seconds")
   }
 
-  def calculateConcurrently() = {
+  def calculateConcurrently = {
     val inputPowers = getInputPowers
     val laserData = getLaserData
     for (laser <- laserData) yield Future {
@@ -50,7 +50,7 @@ object Satin extends App {
     }
   }
 
-  def calculate() {
+  def calculate = {
     val inputPowers = getInputPowers
     getLaserData.foreach(laser => process(inputPowers, laser))
   }
