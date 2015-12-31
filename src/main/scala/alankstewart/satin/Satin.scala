@@ -30,9 +30,9 @@ object Satin extends App {
   val start = System.nanoTime
   try {
     if (args.length > 0 && args(0).equals("-single")) {
-      calculate()
+      calculate
     } else {
-      Await.result(Future.sequence(calculateConcurrently()), Duration(60, SECONDS))
+      Await.result(Future.sequence(calculateConcurrently), Duration(60, SECONDS))
     }
   } catch {
     case t: Throwable => println(s"Failed to complete: $t")
@@ -42,7 +42,7 @@ object Satin extends App {
     } seconds")
   }
 
-  def calculateConcurrently(): Seq[Future[Unit]] = {
+  def calculateConcurrently() = {
     val inputPowers = getInputPowers
     val laserData = getLaserData
     for (laser <- laserData) yield Future {
@@ -55,11 +55,11 @@ object Satin extends App {
     getLaserData.foreach(laser => process(inputPowers, laser))
   }
 
-  def getInputPowers: List[Int] = {
+  def getInputPowers = {
     readDataFile("pin.dat").map(_.trim.toInt).toList
   }
 
-  def getLaserData: List[Laser] = {
+  def getLaserData = {
     val pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
     readDataFile("laser.dat")
       .map(line => pattern.findFirstMatchIn(line)
@@ -67,8 +67,8 @@ object Satin extends App {
       .toList
   }
 
-  def readDataFile(fileName: String): Iterator[String] = {
-    Source.fromURI(getClass.getClassLoader.getResource(fileName).toURI).getLines()
+  def readDataFile(fileName: String) = {
+    Source.fromURI(getClass.getClassLoader.getResource(fileName).toURI).getLines
   }
 
   def process(inputPowers: List[Int], laser: Laser) {
@@ -95,10 +95,10 @@ Pin		Pout		Sat. Int	ln(Pout/Pin)	Pout-Pin
       s"""
 End date: ${now.format(DateFormatter)}
 """)
-    path.close()
+    path.close
   }
 
-  def gaussianCalculation(inputPower: Int, smallSignalGain: Double): List[Gaussian] = {
+  def gaussianCalculation(inputPower: Int, smallSignalGain: Double) = {
     val expr1: Array[Double] = Range(0, Incr).map(i => {
       val zInc: Double = (i.toDouble - Incr / 2) / 25
       2 * zInc * Dz / (Z12 + pow(zInc, 2))
