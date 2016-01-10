@@ -56,19 +56,16 @@ object Satin extends App {
   }
 
   def getInputPowers = {
-    readDataFile("pin.dat").map(_.trim.toInt).toList
+    Source.fromURI(getClass.getClassLoader.getResource("pin.dat").toURI)
+      .getLines.map(_.trim.toInt).toList
   }
 
   def getLaserData = {
     val pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
-    readDataFile("laser.dat")
-      .map(line => pattern.findFirstMatchIn(line)
-        .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, CO2.withName(m.group(2).toUpperCase))).get)
+    Source.fromURI(getClass.getClassLoader.getResource("laser.dat").toURI)
+      .getLines.map(line => pattern.findFirstMatchIn(line)
+      .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, m.group(2))).get)
       .toList
-  }
-
-  def readDataFile(fileName: String) = {
-    Source.fromURI(getClass.getClassLoader.getResource(fileName).toURI).getLines
   }
 
   def process(inputPowers: List[Int], laser: Laser) {
@@ -105,7 +102,7 @@ End date: ${now.format(DateFormatter)}
     }).toArray
 
     val inputIntensity = 2 * inputPower / Area
-    val expr2 = smallSignalGain / 32E3 * Dz
+    val expr2 = smallSignalGain / 32000 * Dz
 
     Range.inclusive(10000, 25000, 1000).map(saturationIntensity => {
       val expr3: Double = saturationIntensity * expr2
