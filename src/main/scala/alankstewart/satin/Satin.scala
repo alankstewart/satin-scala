@@ -20,9 +20,9 @@ object Satin extends App {
   val W1 = 0.3
   val Dr = 0.002
   val Dz = 0.04
-  val Lamda = 0.0106
+  val Lambda = 0.0106
   val Area = Pi * pow(Rad, 2)
-  val Z1 = Pi * pow(W1, 2) / Lamda
+  val Z1 = Pi * pow(W1, 2) / Lambda
   val Z12 = Z1 * Z1
   val Expr = 2 * Pi * Dr
   val Incr = 8001
@@ -42,6 +42,11 @@ object Satin extends App {
     } seconds")
   }
 
+  def calculate = {
+    val inputPowers = getInputPowers
+    getLaserData.foreach(laser => process(inputPowers, laser))
+  }
+
   def calculateConcurrently = {
     val inputPowers = getInputPowers
     val laserData = getLaserData
@@ -50,17 +55,12 @@ object Satin extends App {
     }
   }
 
-  def calculate = {
-    val inputPowers = getInputPowers
-    getLaserData.foreach(laser => process(inputPowers, laser))
-  }
-
-  def getInputPowers = {
+  private def getInputPowers = {
     Source.fromURI(getClass.getClassLoader.getResource("pin.dat").toURI)
-      .getLines.map(_.trim.toInt).toList
+      .getLines.map(_.trim.toInt).toArray
   }
 
-  def getLaserData = {
+  private def getLaserData = {
     val pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
     Source.fromURI(getClass.getClassLoader.getResource("laser.dat").toURI)
       .getLines.map(line => pattern.findFirstMatchIn(line)
@@ -68,7 +68,7 @@ object Satin extends App {
       .toList
   }
 
-  def process(inputPowers: List[Int], laser: Laser) {
+  private def process(inputPowers: Array[Int], laser: Laser) {
     val path = new PrintWriter(new File(Path + "/" + laser.outputFile))
     path.write(
       f"""Start date: ${now.format(DateFormatter)}
