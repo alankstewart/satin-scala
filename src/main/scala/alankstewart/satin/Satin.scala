@@ -57,7 +57,8 @@ object Satin extends App {
 
   private def getInputPowers = {
     Source.fromURI(getClass.getClassLoader.getResource("pin.dat").toURI)
-      .getLines.map(_.trim.toInt).toArray
+      .getLines.map(_.trim.toInt)
+      .toArray
   }
 
   private def getLaserData = {
@@ -92,7 +93,7 @@ Pin		Pout		Sat. Int	ln(Pout/Pin)	Pout-Pin
       s"""
 End date: ${now.format(DateFormatter)}
 """)
-    path.close
+    path.close()
   }
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Double) = {
