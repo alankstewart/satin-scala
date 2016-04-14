@@ -56,17 +56,16 @@ object Satin extends App {
   }
 
   private def getInputPowers = {
-    Source.fromURI(getClass.getClassLoader.getResource("pin.dat").toURI)
-      .getLines.map(_.trim.toInt)
-      .toArray
+    val source = Source.fromURI(getClass.getClassLoader.getResource("pin.dat").toURI)
+    try source.getLines.map(_.trim.toInt).toArray finally source.close
   }
 
   private def getLaserData = {
     val pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
-    Source.fromURI(getClass.getClassLoader.getResource("laser.dat").toURI)
-      .getLines.map(line => pattern.findFirstMatchIn(line)
+    val source = Source.fromURI(getClass.getClassLoader.getResource("laser.dat").toURI)
+    try source.getLines.map(line => pattern.findFirstMatchIn(line)
       .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, m.group(2))).get)
-      .toList
+      .toList finally source.close
   }
 
   private def process(inputPowers: Array[Int], laser: Laser) {
