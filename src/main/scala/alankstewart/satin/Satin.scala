@@ -71,27 +71,31 @@ object Satin extends App {
   private def process(inputPowers: Array[Int], laser: Laser) {
     val path = new PrintWriter(new File(Path + "/" + laser.outputFile))
     path.write(
-      f"""Start date: ${now.format(DateFormatter)}
-
-Gaussian Beam
-
-Pressure in Main Discharge = ${laser.dischargePressure}kPa
-Small-signal Gain = ${laser.smallSignalGain}%4.1f
-CO2 via ${laser.carbonDioxide}
-
-Pin		Pout		Sat. Int	ln(Pout/Pin)	Pout-Pin
-(watts)		(watts)		(watts/cm2)			(watts)
-""")
+      f"""
+         |Start date: ${now.format(DateFormatter)}
+         |
+         |Gaussian Beam
+         |
+         |Pressure in Main Discharge = ${laser.dischargePressure}kPa
+         |Small-signal Gain = ${laser.smallSignalGain}%4.1f
+         |CO2 via ${laser.carbonDioxide}
+         |
+         |Pin		Pout		Sat. Int	ln(Pout/Pin)	Pout-Pin
+         |(watts)		(watts)		(watts/cm2)			(watts)""".stripMargin
+    )
 
     inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
       .foreach(gaussian => path.write(
-        s"""${gaussian.inputPower}		${double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP)}		${gaussian.saturationIntensity}		${gaussian.logOutputPowerDividedByInputPower()}		${gaussian.outputPowerMinusInputPower()}
-""")))
+        s"""
+           |${gaussian.inputPower}		${double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP)}		${gaussian.saturationIntensity}		${gaussian.logOutputPowerDividedByInputPower()}		${gaussian.outputPowerMinusInputPower()}""".stripMargin
+      )))
 
     path.write(
       s"""
-End date: ${now.format(DateFormatter)}
-""")
+         |
+         |End date: ${now.format(DateFormatter)}
+         |""".stripMargin
+    )
     path.close()
   }
 
