@@ -104,7 +104,6 @@ object Satin extends App {
       val zInc = (i.toDouble - Incr / 2) / 25
       2 * zInc * Dz / (Z12 + pow(zInc, 2))
     }).toArray
-
     val inputIntensity = 2 * inputPower / Area
     val expr2 = smallSignalGain / 32000 * Dz
 
