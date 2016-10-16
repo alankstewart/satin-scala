@@ -30,7 +30,7 @@ object Satin extends App {
   val start = System.nanoTime
   try {
     if (args.length > 0 && args(0).equals("-single")) {
-      calculate
+      calculateConcurrently
     } else {
       Await.result(Future.sequence(calculateConcurrently), Duration(60, SECONDS))
     }
