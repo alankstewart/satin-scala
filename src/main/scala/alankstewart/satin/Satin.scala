@@ -42,7 +42,7 @@ object Satin extends App {
     } seconds")
   }
 
-  def calculate = {
+  def calculate() = {
     val inputPowers = getInputPowers
     getLaserData.foreach(laser => process(inputPowers, laser))
   }
@@ -96,8 +96,8 @@ End date: ${now.format(DateFormatter)}
   }
 
   def gaussianCalculation(inputPower: Int, smallSignalGain: Double) = {
-    val expr1: Array[Double] = Range(0, Incr).map(i => {
-      val zInc: Double = (i.toDouble - Incr / 2) / 25
+    val expr1 = Range(0, Incr).map(i => {
+      val zInc = (i.toDouble - Incr / 2) / 25
       2 * zInc * Dz / (Z12 + pow(zInc, 2))
     }).toArray
 
@@ -105,8 +105,8 @@ End date: ${now.format(DateFormatter)}
     val expr2 = smallSignalGain / 32000 * Dz
 
     Range.inclusive(10000, 25000, 1000).map(saturationIntensity => {
-      val expr3: Double = saturationIntensity * expr2
-      val outputPower: Double = Range.Double.inclusive(0.0, 0.5, Dr).map(r => {
+      val expr3 = saturationIntensity * expr2
+      val outputPower = Range.Double.inclusive(0.0, 0.5, Dr).map(r => {
         var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
         Range(0, Incr).foreach(j => {
           outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j))
