@@ -86,12 +86,12 @@ object Satin extends App {
 
     inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
       .foreach(gaussian => path.write(
-        s"""
+        f"""
            |${gaussian.inputPower}		${double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP)}		${gaussian.saturationIntensity}		${gaussian.logOutputPowerDividedByInputPower()}		${gaussian.outputPowerMinusInputPower()}""".stripMargin
       )))
 
     path.write(
-      s"""
+      f"""
          |
          |End date: ${now.format(DateFormatter)}
          |""".stripMargin
