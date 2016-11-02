@@ -69,7 +69,7 @@ object Satin extends App {
   }
 
   private def process(inputPowers: Array[Int], laser: Laser) {
-    val path = new PrintWriter(new File(Path + "/" + laser.outputFile))
+    val path = new PrintWriter(new File(s"$Path/${laser.outputFile}"))
     path.write(
       f"""
          |Start date: ${now.format(DateFormatter)}
@@ -81,7 +81,8 @@ object Satin extends App {
          |CO2 via ${laser.carbonDioxide}
          |
          |Pin		Pout		Sat. Int	ln(Pout/Pin)	Pout-Pin
-         |(watts)		(watts)		(watts/cm2)			(watts)""".stripMargin
+         |(watts)		(watts)		(watts/cm2)			(watts)"""
+        .stripMargin
     )
 
     inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
@@ -103,7 +104,7 @@ object Satin extends App {
     val expr1 = Range(0, Incr).map(i => {
       val zInc = (i.toDouble - Incr / 2) / 25
       2 * zInc * Dz / (Z12 + pow(zInc, 2))
-    }).toArray
+    })
     val inputIntensity = 2 * inputPower / Area
     val expr2 = smallSignalGain / 32000 * Dz
 
@@ -111,9 +112,7 @@ object Satin extends App {
       val expr3 = saturationIntensity * expr2
       val outputPower = Range.Double.inclusive(0.0, 0.5, Dr).map(r => {
         var outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(Rad, 2))
-        Range(0, Incr).foreach(j => {
-          outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j))
-        })
+        Range(0, Incr).foreach(j => outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1(j)))
         outputIntensity * Expr * r
       }).sum
       Gaussian(inputPower, outputPower, saturationIntensity)
