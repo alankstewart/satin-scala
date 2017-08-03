@@ -42,12 +42,12 @@ object Satin extends App {
     } seconds")
   }
 
-  def calculate() = {
+  def calculate(): Unit = {
     val inputPowers = getInputPowers
     getLaserData.foreach(laser => process(inputPowers, laser))
   }
 
-  def calculateConcurrently = {
+  def calculateConcurrently: List[Future[Unit]] = {
     val inputPowers = getInputPowers
     val laserData = getLaserData
     for (laser <- laserData) yield Future {
@@ -100,7 +100,7 @@ object Satin extends App {
     path.close()
   }
 
-  def gaussianCalculation(inputPower: Int, smallSignalGain: Double) = {
+  def gaussianCalculation(inputPower: Int, smallSignalGain: Double): List[Gaussian] = {
     val expr1 = Range(0, Incr).map(i => {
       val zInc = (i.toDouble - Incr / 2) / 25
       2 * zInc * Dz / (Z12 + pow(zInc, 2))
