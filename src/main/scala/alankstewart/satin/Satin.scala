@@ -44,10 +44,10 @@ object Satin extends App {
 
   def calculate(): Unit = {
     val inputPowers = getInputPowers
-    getLaserData.foreach(laser => process(inputPowers, laser))
+    getLaserData.foreach(process(inputPowers, _))
   }
 
-  def calculateConcurrently: List[Future[Unit]] = {
+  def calculateConcurrently: Seq[Future[Unit]] = {
     val inputPowers = getInputPowers
     val laserData = getLaserData
     for (laser <- laserData) yield Future {
@@ -63,7 +63,7 @@ object Satin extends App {
   private def getLaserData = {
     val pattern = "((md|pi)[a-z]{2}\\.out)\\s+([0-9]{2}\\.[0-9])\\s+([0-9]+)\\s+(?i:\\2)".r
     val source = Source.fromURI(getClass.getClassLoader.getResource("laser.dat").toURI)
-    try source.getLines.map(line => pattern.findFirstMatchIn(line)
+    try source.getLines.map(pattern.findFirstMatchIn(_)
       .map(m => Laser(m.group(1), m.group(3).toDouble, m.group(4).toInt, m.group(2))).get)
       .toList finally source.close
   }
@@ -85,7 +85,7 @@ object Satin extends App {
         .stripMargin
     )
 
-    inputPowers.foreach(inputPower => gaussianCalculation(inputPower, laser.smallSignalGain)
+    inputPowers.foreach(gaussianCalculation(_, laser.smallSignalGain)
       .foreach(gaussian => path.write(
         f"""
            |${gaussian.inputPower}		${double2bigDecimal(gaussian.outputPower).setScale(3, HALF_UP)}		${gaussian.saturationIntensity}		${gaussian.logOutputPowerDividedByInputPower()}		${gaussian.outputPowerMinusInputPower()}""".stripMargin
@@ -100,7 +100,7 @@ object Satin extends App {
     path.close()
   }
 
-  def gaussianCalculation(inputPower: Int, smallSignalGain: Double): List[Gaussian] = {
+  def gaussianCalculation(inputPower: Int, smallSignalGain: Double): Seq[Gaussian] = {
     val expr1 = Range(0, Incr).map(i => {
       val zInc = (i.toDouble - Incr / 2) / 25
       2 * zInc * Dz / (Z12 + pow(zInc, 2))
@@ -116,6 +116,6 @@ object Satin extends App {
         outputIntensity * Expr * r
       }).sum
       Gaussian(inputPower, outputPower, saturationIntensity)
-    }).toList
+    })
   }
 }
