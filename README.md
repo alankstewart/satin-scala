@@ -1,4 +1,4 @@
-#satin-scala
+# satin-scala
 
 ![Build Status](https://travis-ci.org/alankstewart/satin-scala.svg?branch=master)
 
